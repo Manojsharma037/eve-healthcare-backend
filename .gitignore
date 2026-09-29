@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.test
+.env.docker
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime / process files
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage / test output
+coverage/
+.nyc_output/
+
+# Build output
+dist/
+build/
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Prisma generated client (kept in node_modules by default; ignored here as a safety net)
+prisma/generated/
+src/generated/
+
+# Agent / IDE tooling scaffolding (not part of the application)
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
+
+# Stray Prisma 7 init leftover (unused by this Prisma 6 project — safe to delete)
+prisma7.config.ts

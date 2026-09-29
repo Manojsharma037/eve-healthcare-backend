@@ -1,0 +1,115 @@
+// Prisma schema for the EVE Healthcare Backend
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  SUCCESS
+  FAILED
+}
+
+// ---------------------------------------------------------------------------
+// Models
+// ---------------------------------------------------------------------------
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  email     String   @unique
+  password  String // stores a HASHED password (hashing added later)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  bookings Booking[]
+}
+
+model DiagnosticCentre {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  location  String
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  tests    DiagnosticTest[]
+  bookings Booking[]
+}
+
+model DiagnosticTest {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  price     Decimal  @db.Decimal(10, 2) // monetary value — never a float
+  centreId  String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  // Each test belongs to exactly one centre; a centre has many tests.
+  // Restrict: a centre that still offers tests cannot be deleted out from under them.
+  centre   DiagnosticCentre @relation(fields: [centreId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  bookings Booking[]
+
+  @@index([centreId])
+}
+
+model Booking {
+  id                  String        @id @default(uuid()) @db.Uuid
+  userId              String        @db.Uuid
+  testId              String        @db.Uuid
+  centreId            String        @db.Uuid
+  appointmentDateTime DateTime      @db.Timestamptz(6)
+  amount              Decimal       @db.Decimal(10, 2) // amount charged for this booking
+  status              BookingStatus @default(PENDING)
+  createdAt           DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt           DateTime      @updatedAt @db.Timestamptz(6)
+
+  // A booking belongs to one user, one test, and one centre.
+  // Restrict everywhere so booking history is never silently cascade-deleted.
+  user   User             @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  test   DiagnosticTest   @relation(fields: [testId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  centre DiagnosticCentre @relation(fields: [centreId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  // At most one payment per booking (enforced by @unique on Payment.bookingId).
+  payment Payment?
+
+  @@index([userId])
+  @@index([testId])
+  @@index([centreId])
+  @@index([status])
+  @@index([appointmentDateTime])
+}
+
+model Payment {
+  id            String        @id @default(uuid()) @db.Uuid
+  bookingId     String        @unique @db.Uuid // unique => one-to-one with Booking
+  amount        Decimal       @db.Decimal(10, 2)
+  status        PaymentStatus
+  transactionId String?       @unique // gateway reference; nullable until assigned
+  createdAt     DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime      @updatedAt @db.Timestamptz(6)
+
+  // Restrict: keep payment history even if someone tries to delete the booking.
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+}
+
+model WebhookEvent {
+  id        String   @id @default(uuid()) @db.Uuid
+  eventId   String   @unique // idempotency key from the payment provider
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+}

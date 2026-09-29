@@ -1,0 +1,35 @@
+{
+  "name": "eve-healthcare-backend",
+  "version": "1.0.0",
+  "description": "Backend for the EVE Healthcare SDE Intern Assignment",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest --runInBand",
+    "prisma:generate": "prisma generate"
+  },
+  "keywords": [
+    "eve",
+    "healthcare",
+    "backend",
+    "express"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "6.19.3",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "18.0.4",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.3",
+    "swagger-ui-express": "^5.0.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "jest": "^30.5.2",
+    "nodemon": "^3.1.9",
+    "prisma": "6.19.3",
+    "supertest": "^7.3.0"
+  }
+}
