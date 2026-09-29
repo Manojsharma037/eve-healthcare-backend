@@ -357,20 +357,26 @@ isolated local test database and is unaffected by Docker.
 
 ## Verification Status
 
-The implemented backend has been verified end-to-end using **standalone HTTP
-verification scripts** (a formal automated test suite has **not** been added yet
-— these are not Jest/Supertest tests).
+The backend is covered by a formal **Jest + Supertest** automated test suite,
+run with `npm test`:
 
-| Area | Assertions | Result |
-|------|-----------:|--------|
-| Authentication | 21 | ✅ 0 failures |
-| Centres / Tests | 21 | ✅ 0 failures |
-| Bookings | 22 | ✅ 0 failures |
-| Mock Payments | 23 | ✅ 0 failures |
-| Webhook | 34 | ✅ 0 failures |
-| **Total (regression)** | **121** | **✅ 0 failures** |
+| Metric | Result |
+|--------|--------|
+| Test suites | 8 |
+| Tests | 78 |
+| Passed | 78 |
+| Failed | 0 |
 
-For the webhook specifically, the following were explicitly tested:
+The tests run against a **separate, isolated PostgreSQL test database**
+(`eve_healthcare_test`), selected via `TEST_DATABASE_URL` in the Jest setup. The
+development database is **not** reset or truncated by the test suite; each test
+cleans up only the rows it creates.
+
+Earlier in development the API was also verified end-to-end using **standalone
+HTTP verification scripts**; that manual verification has since been superseded
+by the automated suite above.
+
+For the webhook specifically, the following are explicitly tested:
 
 - Duplicate delivery of the same `eventId` (idempotent `200`, no duplicate payment).
 - Concurrent duplicate delivery (exactly one payment; one "processed", one
@@ -412,9 +418,6 @@ For the webhook specifically, the following were explicitly tested:
 
 Not implemented yet (potential next steps):
 
-- Automated test suite (Jest / Supertest).
-- API documentation (Swagger / OpenAPI).
-- Containerization (Docker / Docker Compose).
 - Real payment-gateway integration with webhook signature verification.
 - Operational hardening (rate limiting, Redis, structured logging, pagination).
 - Admin roles / role-based access control.
